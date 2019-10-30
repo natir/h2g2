@@ -1,0 +1,13 @@
+name: h2g2
+
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - jupyterlab=1.1
+  - nb_conda=2.2
+  - snakemake=5.7
+  - seqtk=1.3
+  - minimap2=2.17
+  - samtools=1.9
