@@ -1,23 +1,22 @@
-basic_path = "/scratch/bioinf/projects/dga-testing-2/output/diploid_assembly/strandseq/freebayes_GQ100_DP50/HG00733_sra_pbsq1-clr_clustV2-100kb/HG00733_hgsvc_pbsq2-ccs_1000/HG00733_1kg_il25k-npe_sseq/consensus"
+import os
 
 rule mapping:
     input:
-        query  = basic_path+"/{filename}.h1-un.fasta",
-        target = basic_path+"/{filename}.h2-un.fasta"
+        "assembly/asm_{asmid}.fasta"
     output:
-        "mapping/{filename}_h1_h2.paf"
+        "mapping/ref_asm_{asmid}.sam"
     shell:
-        "minimap2 -cx asm5 --cs {input.query} {input.target} | sort -k6,6 -k8,8n > {output}"
+        "minimap2 -cx asm5 --cs assembly/reference.fasta {input} | sort -k6,6 -k8,8n > {output}"
     
 rule vcf:
     input:
-        "mapping/{filename}_h1_h2.paf"
+        "mapping/ref_asm_{asmid}.sam"
     output:
-        "variant/{filename}.vcf"
+        "variant/ref_asm_{asmid}.vcf"
     shell:
-        "paftools.js call {input} > {output}"
-
+        "paftools.js call -f assembly/reference.fasta {input} > {output}"
 
 rule all:
     input:
-        "variant/HG00733_sra_pbsq1-clr_1000.vcf"
+        ["variant/ref_{}.vcf".format(os.path.splitext(entry.name)[0]) for entry in os.scandir("assembly") if entry.is_file() and entry.name.startswith("asm")]
+
