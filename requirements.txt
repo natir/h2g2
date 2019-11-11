@@ -1,0 +1,2 @@
+vcfpy==0.12.1
+biopython==1.74
