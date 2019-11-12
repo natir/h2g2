@@ -55,7 +55,7 @@ def split(args):
             #print("alt", alt)
             alts[vcf2haploid[v[1]] - 1] = alt
             #print("alts", alts)
-            hetero[vcf2haploid[v[1]] - 1] = variant.genotype('sample')['GT'].replace("1", str(vcf2haploid[v[1]]))
+            hetero[vcf2haploid[v[1]] - 1] = variant.genotype(variant.samples[0].sample)['GT'].replace("1", str(vcf2haploid[v[1]]))
             
         print("\t".join([chrom, # #CHROM
                         str(begin), # POS
