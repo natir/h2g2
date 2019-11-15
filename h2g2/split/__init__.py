@@ -10,14 +10,18 @@ import vcf
 from Bio import SeqIO
 
 def split(args):
-    
+
+    output = open(args.output, 'w')
     tig2seq = read_ref(args.references)
 
     variants, vcf2haploid, haploid2vcf = read_vcfs(args.vcf_files)
     
     blocks = generate_block(variants)
-            
-    print("\t".join(["#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", *args.vcf_files]))
+    
+    print("##fileformat=VCFv4.2", file=output)
+    print("##FORMAT=<ID=GT,Number={},Type=String,Description=\"Genotype\">".format(len(vcf2haploid)), file=output)
+    
+    print("\t".join(["#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", *args.vcf_files]), file=output)
 
     for block in blocks:
         poss = list()
@@ -31,43 +35,52 @@ def split(args):
         chrom = block[0][0].CHROM
         ref = str(tig2seq[chrom][begin-1:end-1])
 
-        #print("begin", begin)
-        #print("end", end)
-        
         alts = [""] * len(args.vcf_files)
-        hetero = [""] * len(args.vcf_files)
+
         for v in block:
             variant = v[0]
-            
-            #print("variant.begin", variant.start + 1)
-            #print("variant.end", variant.end + 1)            
 
             change_pos_begin = dist(begin, (variant.start + 1))
             change_pos_end = dist(len(ref), (end - (variant.end + 1)))
-            #print("ref", ref)
+
             alt = str(variant.ALT[0])
-            #print("change_pos_begin", change_pos_begin)
-            #print("ref[:change_pos]", ref[:change_pos_begin])
-            #print("change_pos_end", change_pos_end)
-            #print("ref[change_pos:]", ref[change_pos_end:])
-            #print("alt", alt)
             alt = ref[:change_pos_begin]+alt+ref[change_pos_end:]
-            #print("alt", alt)
+
             alts[vcf2haploid[v[1]] - 1] = alt
-            #print("alts", alts)
-            hetero[vcf2haploid[v[1]] - 1] = variant.genotype(variant.samples[0].sample)['GT'].replace("1", str(vcf2haploid[v[1]]))
+
+        corrected_alts = []
+        alts2id = dict()
+        hetero = [""] * len(args.vcf_files)
+        print(alts)
+        print()
+        for i, alt in enumerate(alts):
+            print(i, alt)
+            if alt != "":
+                if alt not in alts2id:
+                    alts2id[alt] = i + 1
+                    altid = alts2id[alt]
+                    variant = block[i][0]
+                    print("variant", variant)
+                    corrected_alts.append(alt)
+                else:
+                    altid = alts2id[alt]
+                hetero[i] = variant.genotype(variant.samples[0].sample)['GT'].replace("1", str(altid))
+            else:
+                hetero[i] = "0|0"
+            
             
         print("\t".join([chrom, # #CHROM
                         str(begin), # POS
                         '.',   # ID
                         ref,   # REF
-                        ','.join(alts), # ALT
+                        ','.join(corrected_alts), # ALT
                         '.',   # QUAL
                         '.',   # FILTER
                         '.',   # INFO
-                        '.',   # FORMAT
+                        'GT',   # FORMAT
                         '\t'.join(hetero) 
-                        ])
+                        ]),
+              file=output
         )
 
 def dist(a, b):
