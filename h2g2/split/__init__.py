@@ -14,13 +14,31 @@ def split(args):
 
     variants, vcf2haploid, haploid2vcf = read_vcfs(args.vcf_files)
     
-    blocks = generate_block(variants)
+    others, blocks = generate_block(variants)
     
     print("##fileformat=VCFv4.2", file=output)
     print("##FORMAT=<ID=GT,Number={},Type=String,Description=\"Genotype\">".format(len(vcf2haploid)), file=output)
     
     print("\t".join(["#CHROM", "POS", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", *args.vcf_files]), file=output)
 
+    for (v, f) in others:
+        gt = ["0|0"] * len(args.vcf_files)
+        gt[args.vcf_files.index(f)] = v.genotype(v.samples[0].sample)['GT']
+
+        print("\t".join([v.CHROM, # #CHROM
+                         str(v.POS), # POS
+                         '.', # ID
+                         v.REF, # REF
+                         ','.join([s.sequence for s in v.ALT]), # ALT
+                         '.', # QUAL
+                         '.', # FILTER
+                         '.', # INFO
+                         'GT', # FORMAT
+                         '\t'.join(gt)
+                         ]),
+              file=output
+        )
+    
     for block in blocks:
         poss = list()
         for v in block:

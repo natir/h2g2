@@ -36,6 +36,7 @@ def read_vcfs(paths):
 def generate_block(variants):
     block = list()
     list_block = list()
+    not_block_variant = list()
     for variant in sorted(variants, key=lambda x: x[0].start):
         if len(block) == 0:
             block.append(variant)
@@ -46,10 +47,12 @@ def generate_block(variants):
         else:
             if len(block) > 1:
                 list_block.append(block)
+            else:
+                not_block_variant.append(block[0])
             block = list()
             block.append(variant)
 
     if len(block) > 1:
         list_block.append(block)
 
-    return list_block
+    return not_block_variant, list_block

@@ -15,7 +15,7 @@ def extract(args):
 
     variants, vcf2haploid, haploid2vcf = read_vcfs(args.vcf_files)
     
-    blocks = generate_block(variants)
+    _, blocks = generate_block(variants)
         
     for block in blocks:
         poss = list()
