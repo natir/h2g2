@@ -49,16 +49,14 @@ def split(args):
         corrected_alts = []
         alts2id = dict()
         hetero = [""] * len(args.vcf_files)
-        print(alts)
-        print()
-        for i, alt in enumerate(alts):
-            print(i, alt)
+        i = -1
+        for alt in alts:
             if alt != "":
                 if alt not in alts2id:
+                    i += 1
                     alts2id[alt] = i + 1
                     altid = alts2id[alt]
                     variant = block[i][0]
-                    print("variant", variant)
                     corrected_alts.append(alt)
                 else:
                     altid = alts2id[alt]
