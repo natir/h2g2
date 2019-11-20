@@ -66,7 +66,7 @@ def split(args):
 
         corrected_alts = []
         alts2id = dict()
-        hetero = [""] * len(args.vcf_files)
+        hetero = ["0|0"] * len(args.vcf_files)
         i = -1
         for alt in alts:
             if alt != "":
