@@ -17,7 +17,7 @@ def extract(args):
     
     _, blocks = generate_block(variants)
         
-    for block in blocks:
+    for block in filter_snp_block(blocks):
         poss = list()
         for v in block:
             poss.append(v[0].start)
@@ -43,4 +43,9 @@ def extract(args):
         output = open(output_prefix+chrom+'_'+str(begin)+'.fasta', 'w')
         print("\n".join([">{}\n{}".format(id, seq) for id, seq in alts.items()]), file=output)
 
-        
+
+def filter_snp_block(blocks):
+    for block in blocks:
+        if all(v[0].is_snp for v in block):
+            yield block
+            
